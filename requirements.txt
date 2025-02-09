@@ -1,0 +1,7 @@
+Flask==3.1.0
+plotly==6.0.0
+numpy==2.2.2
+pandas==2.2.0
+psycopg2-binary==2.9.9  # PostgreSQL database driver
+gunicorn==21.2.0  # If deploying to a cloud platform like Heroku
+pip freeze > requirements.txt
