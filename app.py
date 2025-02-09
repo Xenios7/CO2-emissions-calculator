@@ -95,12 +95,12 @@ def generate_recommendations(total_emissions):
 @app.route('/generate_pie_chart')
 def generate_pie_chart():
     """
-    Generate and save an interactive 2D pie chart using Plotly.
+    Generate and save an interactive pie chart using Plotly as a PNG image.
     """
     try:
         print("✅ Generating Pie Chart...")
 
-        # Retrieve values dynamically from the request
+        # Get values dynamically from query parameters
         transport = float(request.args.get("transport", 0))
         energy = float(request.args.get("energy", 0))
         diet = float(request.args.get("diet", 0))
@@ -108,29 +108,30 @@ def generate_pie_chart():
         labels = ['Transportation', 'Energy Usage', 'Diet']
         values = [transport, energy, diet]
 
-        # Create interactive Pie Chart using Plotly
+        # Create Pie Chart using Plotly
         fig = go.Figure(data=[go.Pie(
             labels=labels,
             values=values,
-            pull=[0.1, 0.1, 0.1],  # Slightly separate each section
+            pull=[0.1, 0.1, 0.1],  # Separate the slices
             hoverinfo='label+value+percent',
-            textinfo='percent+label',
-            marker=dict(colors=['#ff9999', '#66b3ff', '#99ff99'])  # Custom colors
+            textinfo='percent+label'
         )])
 
         fig.update_layout(
             title='Carbon Footprint Breakdown',
-            title_x=0.5,  # Center the title
+            title_x=0.5,
             showlegend=True
         )
 
-        # Save the chart as an HTML file
+        # Ensure static directory exists
         os.makedirs("static", exist_ok=True)
-        chart_path = os.path.join("static", "carbon_footprint_pie.html")
-        fig.write_html(chart_path)
+
+        # Save as PNG file (Plotly requires `kaleido`)
+        chart_path = os.path.join("static", "carbon_footprint_pie.png")
+        fig.write_image(chart_path, format="png", scale=2)  # Save as PNG
 
         print(f"✅ Pie Chart Saved at {chart_path}")
-        return send_file(chart_path, mimetype='text/html')
+        return send_file(chart_path, mimetype='image/png')
 
     except Exception as e:
         print(f"❌ Error: {e}")

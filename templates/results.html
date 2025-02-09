@@ -27,7 +27,7 @@
 
         <section>
             <h2>Visual Breakdown</h2>
-            <img src="{{ url_for('static', filename='carbon_footprint_pie.png') }}" alt="Pie Chart of Carbon Footprint">
+            <img src="{{ url_for('generate_pie_chart', transport=transport_emissions, energy=energy_emissions, diet=diet_emissions) }}" alt="Pie Chart of Carbon Footprint">
         </section>
 
         <a href="/">Back to Calculator</a>
