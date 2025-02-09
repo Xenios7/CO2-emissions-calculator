@@ -24,11 +24,18 @@
             <h2>Recommendations</h2>
             <p>{{ recommendations }}</p>
         </section>
+
         <section>
             <h2>Visual Breakdown</h2>
             <img src="{{ url_for('static', filename='carbon_footprint_pie.png') }}" alt="Pie Chart of Carbon Footprint">
         </section>
+
         <a href="/">Back to Calculator</a>
     </main>
+
+    <script>
+        // Dynamically load the latest generated pie chart to avoid caching issues
+        document.getElementById("pie-chart").src = "/generate_pie_chart?" + new Date().getTime();
+    </script>
 </body>
 </html>

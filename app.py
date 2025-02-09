@@ -1,4 +1,6 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_file
+import os
+import plotly.graph_objects as go
 
 app = Flask(__name__)
 
@@ -16,13 +18,11 @@ def home():
 @app.route("/calculate", methods=["POST"])
 def calculate():
     try:
-        # Ensure request is JSON
         if not request.is_json:
             return jsonify({"error": "Request must be JSON"}), 415
 
         data = request.get_json()
 
-        # Extract input values and validate them
         transport_type = data.get("transport_type", "").lower()
         distance = data.get("distance")
         energy_usage = data.get("energy_usage")
@@ -37,10 +37,8 @@ def calculate():
         except ValueError:
             return jsonify({"error": "Invalid number format"}), 400
 
-        # Calculate emissions
         results = calculate_emissions(transport_type, distance, energy_usage, diet_type)
 
-        # Redirect to results page with calculated values
         return jsonify(results)
 
     except Exception as e:
@@ -54,8 +52,15 @@ def results():
     diet = request.args.get("diet", 0)
     total = request.args.get("total", 0)
 
-    # Generate recommendations based on emissions
-    recommendations = generate_recommendations(float(total))
+    try:
+        transport = float(transport)
+        energy = float(energy)
+        diet = float(diet)
+        total = float(total)
+    except ValueError:
+        return jsonify({"error": "Invalid values for emissions"}), 400
+
+    recommendations = generate_recommendations(total)
 
     return render_template("results.html",
                            transport_emissions=transport,
@@ -66,7 +71,6 @@ def results():
 
 # --- Helper Functions ---
 def calculate_emissions(transport_type, distance, energy_usage, diet_type):
-    """Calculates the carbon footprint for transport, energy, and diet."""
     transport_emissions = TRANSPORT_FACTORS.get(transport_type, 0) * distance
     energy_emissions = energy_usage * ENERGY_FACTOR
     diet_emissions = DIET_FACTORS.get(diet_type, 0)
@@ -80,7 +84,6 @@ def calculate_emissions(transport_type, distance, energy_usage, diet_type):
     }
 
 def generate_recommendations(total_emissions):
-    """Provides recommendations based on total carbon footprint."""
     if total_emissions < 10:
         return "Great job! Your carbon footprint is low. Keep using sustainable transport and renewable energy!"
     elif total_emissions < 30:
@@ -88,7 +91,51 @@ def generate_recommendations(total_emissions):
     else:
         return "Your carbon footprint is high. Try using public transport, renewable energy, and a plant-based diet!"
 
+# --- Plotly Pie Chart Route ---
+@app.route('/generate_pie_chart')
+def generate_pie_chart():
+    """
+    Generate and save an interactive 2D pie chart using Plotly.
+    """
+    try:
+        print("✅ Generating Pie Chart...")
+
+        # Retrieve values dynamically from the request
+        transport = float(request.args.get("transport", 0))
+        energy = float(request.args.get("energy", 0))
+        diet = float(request.args.get("diet", 0))
+
+        labels = ['Transportation', 'Energy Usage', 'Diet']
+        values = [transport, energy, diet]
+
+        # Create interactive Pie Chart using Plotly
+        fig = go.Figure(data=[go.Pie(
+            labels=labels,
+            values=values,
+            pull=[0.1, 0.1, 0.1],  # Slightly separate each section
+            hoverinfo='label+value+percent',
+            textinfo='percent+label',
+            marker=dict(colors=['#ff9999', '#66b3ff', '#99ff99'])  # Custom colors
+        )])
+
+        fig.update_layout(
+            title='Carbon Footprint Breakdown',
+            title_x=0.5,  # Center the title
+            showlegend=True
+        )
+
+        # Save the chart as an HTML file
+        os.makedirs("static", exist_ok=True)
+        chart_path = os.path.join("static", "carbon_footprint_pie.html")
+        fig.write_html(chart_path)
+
+        print(f"✅ Pie Chart Saved at {chart_path}")
+        return send_file(chart_path, mimetype='text/html')
+
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return str(e), 500
+
 # --- Run App ---
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)
-
