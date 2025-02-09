@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Footprint Calculator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Carbon Footprint Calculator</h1>
+    
+    <form id="carbonForm">
+        <label for="transport">Transportation Type:</label>
+        <select id="transport" name="transport">
+            <option value="car">Car</option>
+            <option value="bus">Bus</option>
+            <option value="train">Train</option>
+        </select>
+
+        <label for="distance">Distance Traveled (km):</label>
+        <input type="number" id="distance" name="distance" required>
+
+        <label for="energy">Energy Consumption (kWh):</label>
+        <input type="number" id="energy" name="energy" required>
+
+        <label for="diet">Diet Type:</label>
+        <select id="diet" name="diet">
+            <option value="vegan">Vegan</option>
+            <option value="vegetarian">Vegetarian</option>
+            <option value="meat-based">Meat-Based</option>
+        </select>
+
+        <button type="submit">Calculate</button>
+    </form>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("carbonForm");
+
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault(); // Prevent default form submission
+
+                // Collect form data
+                const transportType = document.getElementById("transport").value.trim();
+                const distance = document.getElementById("distance").value;
+                const energyUsage = document.getElementById("energy").value;
+                const dietType = document.getElementById("diet").value.trim();
+
+                if (!transportType || !distance || !energyUsage || !dietType) {
+                    alert("Please fill out all fields!");
+                    return;
+                }
+
+                // Create JSON payload
+                const data = {
+                    transport_type: transportType,
+                    distance: parseFloat(distance),
+                    energy_usage: parseFloat(energyUsage),
+                    diet_type: dietType
+                };
+
+                try {
+                    // Send data as JSON to the backend
+                    const response = await fetch("/calculate", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    // Handle response
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    const result = await response.json();
+
+                    // Redirect to results page with the response data
+                    window.location.href = `/results?transport=${result.transport_emissions}&energy=${result.energy_emissions}&diet=${result.diet_emissions}&total=${result.total_emissions}`;
+                } catch (error) {
+                    console.error("Error:", error);
+                    alert("An error occurred while calculating your carbon footprint.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

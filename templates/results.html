@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Footprint Results</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Your Carbon Footprint Results</h1>
+    </header>
+    <main>
+        <section>
+            <h2>Emissions Breakdown</h2>
+            <ul>
+                <li>Transportation: {{ transport_emissions }} kg CO2</li>
+                <li>Energy Usage: {{ energy_emissions }} kg CO2</li>
+                <li>Food Choices: {{ diet_emissions }} kg CO2</li>
+                <li><strong>Total Emissions:</strong> {{ total_emissions }} kg CO2</li>
+            </ul>
+        </section>
+        <section>
+            <h2>Recommendations</h2>
+            <p>{{ recommendations }}</p>
+        </section>
+        <section>
+            <h2>Visual Breakdown</h2>
+            <img src="{{ url_for('static', filename='carbon_footprint_pie.png') }}" alt="Pie Chart of Carbon Footprint">
+        </section>
+        <a href="/">Back to Calculator</a>
+    </main>
+</body>
+</html>
